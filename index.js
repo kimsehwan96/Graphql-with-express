@@ -3,16 +3,50 @@ const { graphqlHTTP } = require('express-graphql')
 const { buildSchema } = require('graphql');
 
 const schema = buildSchema(`
+
+    input ProductInput {
+        name : String
+        price : Int
+        description : String
+    }
+
+    type Product {
+        id : ID!
+        name : String
+        price : Int
+        description : String
+    }
+
     type Query{
-        hello : String,
-        nodejs : Int
+        getProduct( id : ID! ) : Product
+    }
+
+    type Mutation{
+        addProduct( input : ProductInput ) : Product
     }
 `);
 
 
+//below lines are mock data
+const products = [{
+    id : 1,
+    name : '첫번째 제품',
+    price : 5000,
+    description : "그래프큐엘 테스트 ㅎㅎ"
+},{
+    id : 2,
+    name : '두번째 제품',
+    price : 1000,
+    description : '두번째제품 테스트에용'
+}]
+
 const root = {
-    hello : () => 'hello world',
-    nodejs : () => 20
+    getProduct : ({id}) => products.find( product => product.id === parseInt(id)),
+    addProduct : ({ input }) => {
+        input.id = parseInt(products.length + 1)
+        products.push(input); //들어온 데이터 id auto increment 적용해서 너어줌. 현재 mock데이터라서 그럼
+        return root.getProduct({id : input.id }) //응답
+    }
 }
 
 const app = express();
